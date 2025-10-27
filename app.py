@@ -19,8 +19,13 @@ def load_config():
     """Load configuration from config.json"""
     config_path = Path(__file__).parent / 'config.json'
     if not config_path.exists():
-        # Try loading example config for demo purposes
-        config_path = Path(__file__).parent / 'config.example.json'
+        # Try loading example config for demo/testing purposes
+        example_path = Path(__file__).parent / 'config.example.json'
+        if example_path.exists():
+            print("WARNING: Using example config. Please copy config.example.json to config.json and add your credentials.")
+            config_path = example_path
+        else:
+            raise FileNotFoundError("Configuration file not found. Please create config.json from config.example.json")
     
     with open(config_path, 'r', encoding='utf-8') as f:
         return json.load(f)
@@ -101,7 +106,12 @@ def translate():
         
         # Forward request to Baidu API
         response = requests.get(url, params=params, timeout=10)
-        result = response.json()
+        
+        # Handle non-JSON responses
+        try:
+            result = response.json()
+        except ValueError:
+            return jsonify({'error': 'Invalid response from Baidu API', 'status': response.status_code}), 500
         
         return jsonify(result), response.status_code
         
@@ -142,7 +152,12 @@ def sentiment_analysis():
         }
         
         token_response = requests.post(token_url, params=token_params, timeout=10)
-        token_data = token_response.json()
+        
+        # Handle non-JSON responses
+        try:
+            token_data = token_response.json()
+        except ValueError:
+            return jsonify({'error': 'Invalid token response from Baidu API', 'status': token_response.status_code}), 500
         
         if 'access_token' not in token_data:
             return jsonify({'error': 'Failed to get access token', 'details': token_data}), 500
@@ -173,7 +188,11 @@ def sentiment_analysis():
             timeout=10
         )
         
-        result = response.json()
+        # Handle non-JSON responses
+        try:
+            result = response.json()
+        except ValueError:
+            return jsonify({'error': 'Invalid response from Baidu NLP API', 'status': response.status_code}), 500
         
         return jsonify(result), response.status_code
         

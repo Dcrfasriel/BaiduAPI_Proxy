@@ -13,7 +13,10 @@ from threading import Thread
 
 def start_server():
     """Start the Flask server in background"""
-    subprocess.run([sys.executable, 'app.py'], cwd='/home/runner/work/BaiduAPI_Proxy/BaiduAPI_Proxy')
+    import os
+    # Change to the script's directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    subprocess.run([sys.executable, 'app.py'], cwd=script_dir)
 
 def test_health_endpoint():
     """Test health check endpoint"""
