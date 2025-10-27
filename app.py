@@ -36,6 +36,9 @@ def generate_sign(query, salt, app_id, secret_key):
     """
     Generate sign for Baidu Translation API
     Formula: md5(appid + query + salt + secret_key)
+    
+    Note: MD5 is used here as required by Baidu's API specification.
+    This is not for cryptographic security but for API authentication.
     """
     sign_str = app_id + query + str(salt) + secret_key
     md5 = hashlib.md5()
@@ -115,9 +118,12 @@ def translate():
         
         return jsonify(result), response.status_code
         
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f'Translation API request error: {type(e).__name__}')
+        return jsonify({'error': 'Failed to communicate with translation service'}), 503
     except Exception as e:
-        app.logger.error(f'Translation error: {str(e)}')
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f'Translation error: {type(e).__name__} - {str(e)}')
+        return jsonify({'error': 'Internal error processing translation request'}), 500
 
 @app.route('/api/nlp/sentiment', methods=['POST'])
 def sentiment_analysis():
@@ -196,9 +202,12 @@ def sentiment_analysis():
         
         return jsonify(result), response.status_code
         
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f'Sentiment analysis API request error: {type(e).__name__}')
+        return jsonify({'error': 'Failed to communicate with sentiment analysis service'}), 503
     except Exception as e:
-        app.logger.error(f'Sentiment analysis error: {str(e)}')
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f'Sentiment analysis error: {type(e).__name__} - {str(e)}')
+        return jsonify({'error': 'Internal error processing sentiment analysis request'}), 500
 
 @app.errorhandler(404)
 def not_found(error):
